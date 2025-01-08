@@ -1,0 +1,22 @@
+{
+    "accountCity": "北京",
+    "subBank": "测试支行|123456789123",
+    "orderId": "20241223041156",
+    "sensData": {
+        "accountNo": "6221501111111113900",
+        "keyName": "银联商务股份有限公司",
+        "usrName": "田林"
+    },
+    "accountProv": "北京",
+    "orderStatus": "0000",
+    "randomNum": "414381",
+    "accountBank": "中国工商银行",
+    "merNo": "000000000000001",
+    "transAmt": "1",
+    "respMsg": "认证/查询成功",
+    "busiType": "3060",
+    "keyType": "1",
+    "orderDate": "20241223",
+    "key": "91310000734572833M",
+    "respCode": "00000000"
+}
