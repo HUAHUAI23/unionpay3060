@@ -5,4 +5,5 @@ src/main/resources/cert/
 src/main/resources/security.properties
 
 # 忽略 build 文件
+/target/
 unionpay3060.jar
