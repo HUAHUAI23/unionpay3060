@@ -55,7 +55,7 @@ public class EnterpriseAuthService {
         Map<String, String> requestData = createRequestData(request, userDTO);
 
         // Process sensitive data
-        String encryptedSensData = encryptSensitiveData(request, userDTO, secssUtil);
+        String encryptedSensData = encryptSensitiveData(request, secssUtil);
         requestData.put("sensData", encryptedSensData);
 
         // Prepare final request
@@ -91,17 +91,17 @@ public class EnterpriseAuthService {
         // Add request data
         data.put("key", request.getKey());
         data.put("accountBank", request.getAccountBank());
-        data.put("accountProv", request.getAccountProv());
-        data.put("accountCity", request.getAccountCity());
-        data.put("subBank", request.getSubBank());
+        // data.put("accountProv", request.getAccountProv());
+        // data.put("accountCity", request.getAccountCity());
+        // data.put("subBank", request.getSubBank());
 
         return data;
     }
 
-    private String encryptSensitiveData(EnterpriseAuthRequest request, UserDTO userDTO, SecssUtil secssUtil)
+    private String encryptSensitiveData(EnterpriseAuthRequest request, SecssUtil secssUtil)
             throws Exception {
         Map<String, String> sensData = new HashMap<>();
-        sensData.put("accountNo", userDTO.getUserId());
+        sensData.put("accountNo", request.getAccountNo());
         sensData.put("keyName", request.getKeyName());
         sensData.put("usrName", request.getUsrName());
 
