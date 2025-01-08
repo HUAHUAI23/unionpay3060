@@ -1,0 +1,8 @@
+# 忽略证书目录
+src/main/resources/cert/
+
+# 忽略安全配置文件
+src/main/resources/security.properties
+
+# 忽略 build 文件
+unionpay3060.jar
