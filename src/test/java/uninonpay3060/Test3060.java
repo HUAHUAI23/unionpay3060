@@ -13,31 +13,19 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.URI;
+
+import io.sealos.enterprise.auth.config.EnvConfig;
 import io.sealos.enterprise.auth.utils.StringUtils;
-import java.io.InputStream;
-import java.util.Properties;
 
 public class Test3060 {
     private static final Logger logger = LoggerFactory.getLogger(Test3060.class);
     private static final String TEST_URL = "https://vas-test.chinapay.com/VASAP/vasap/business.htm";
     private static final HttpClient httpClient = HttpClient.newHttpClient();
     private static final SecssUtil secssUtil;
-    private static final Properties properties = new Properties();
 
     static {
-        // Load properties file
-        try (InputStream input = Test3060.class.getClassLoader().getResourceAsStream("security.properties")) {
-            if (input == null) {
-                throw new RuntimeException("Unable to find security.properties");
-            }
-            properties.load(input);
-        } catch (Exception e) {
-            logger.error("Failed to load security.properties", e);
-            throw new RuntimeException("Failed to load security.properties", e);
-        }
-
         secssUtil = new SecssUtil();
-        boolean initResult = secssUtil.init();
+        boolean initResult = secssUtil.init(EnvConfig.getConfigPath());
         if (!initResult) {
             logger.error("SecssUtil initialization failed");
             throw new RuntimeException("SecssUtil initialization failed");
@@ -57,7 +45,7 @@ public class Test3060 {
             try {
                 // 测试数据
                 Map<String, String> testData = new HashMap<>();
-                testData.put("merNo", properties.getProperty("secss.merNo")); // Read from properties
+                testData.put("merNo", EnvConfig.getMerchantNo()); // Read from properties
                 testData.put("busiType", "3060"); // 业务类型
 
                 // 使用当前时间生成 orderDate 和 orderId

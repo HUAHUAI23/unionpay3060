@@ -11,24 +11,23 @@ import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.sealos.enterprise.auth.model.AppTokenPayload;
+import io.github.cdimascio.dotenv.Dotenv;
 
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 
 import javax.crypto.SecretKey;
 
 public class JwtUtils {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
-    private static final String PROPERTIES_FILE = "security.properties";
-    private static final String SECRET_PROPERTY = "secss.jwtSecret";
+    private static final String JWT_SECRET_ENV = "JWT_SECRET";
     private static final long CLOCK_SKEW = 60;
     private static final String TOKEN_PREFIX = "Bearer ";
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 
     private static SecretKey secretKey;
 
@@ -50,22 +49,16 @@ public class JwtUtils {
     }
 
     private static String loadJwtSecret() {
-        Properties properties = new Properties();
-        try (InputStream input = JwtUtils.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE)) {
-            if (input == null) {
-                throw new JwtConfigurationException("Unable to find " + PROPERTIES_FILE);
-            }
-            properties.load(input);
-
-            String secret = properties.getProperty(SECRET_PROPERTY);
-            if (secret == null || secret.trim().isEmpty()) {
-                throw new JwtConfigurationException(SECRET_PROPERTY + " is not configured in " + PROPERTIES_FILE);
-            }
-
-            return secret.trim();
-        } catch (Exception e) {
-            throw new JwtConfigurationException("Failed to load JWT secret from " + PROPERTIES_FILE, e);
+        // 首先尝试从系统环境变量获取
+        String secret = System.getenv(JWT_SECRET_ENV);
+        // 如果系统环境变量中没有，则尝试从 .env 文件获取
+        if (secret == null || secret.trim().isEmpty()) {
+            secret = dotenv.get(JWT_SECRET_ENV);
         }
+        if (secret == null || secret.trim().isEmpty()) {
+            throw new JwtConfigurationException("JWT_SECRET not found in environment variables or .env file");
+        }
+        return secret.trim();
     }
 
     private static String extractToken(String token) {

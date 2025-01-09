@@ -15,6 +15,7 @@
         <jackson.version>2.18.2</jackson.version>
         <jwt.version>0.12.6</jwt.version>
         <lombok.version>1.18.36</lombok.version>
+        <dotenv.version>3.1.0</dotenv.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -70,6 +71,13 @@
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
             <scope>provided</scope>
+        </dependency>
+
+        <!-- dotenv-java -->
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>${dotenv.version}</version>
         </dependency>
 
 

@@ -45,7 +45,12 @@ public class EnterpriseAuthService {
             throws Exception {
         // init unionpay secssUtil
         SecssUtil secssUtil = new SecssUtil();
-        boolean initResult = secssUtil.init();
+
+        if (EnvConfig.getConfigPath() == null || EnvConfig.getConfigPath().isEmpty()) {
+            throw new RuntimeException("secss.configPath is not set");
+        }
+
+        boolean initResult = secssUtil.init(EnvConfig.getConfigPath());
         if (!initResult) {
             logger.error("SecssUtil initialization failed");
             throw new RuntimeException("SecssUtil initialization failed");

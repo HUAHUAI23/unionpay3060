@@ -2,10 +2,12 @@ package io.sealos.enterprise.auth.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.github.cdimascio.dotenv.Dotenv;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -22,8 +24,7 @@ public final class JwtUtilsHmacSHA256 {
     }
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtilsHmacSHA256.class);
-    private static final String PROPERTIES_FILE = "security.properties";
-    private static final String SECRET_PROPERTY = "secss.jwtSecret";
+    private static final String ENV_SECRET_KEY = "JWT_SECRET";
     private static final String TOKEN_PREFIX = "Bearer ";
     private static final String HMAC_ALGORITHM = "HmacSHA256";
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -37,7 +38,8 @@ public final class JwtUtilsHmacSHA256 {
     }
 
     // double-checked locking (DCL) singleton pattern thread safe
-    // Probably not needed, since the class is loaded with static initialization only once, even in the multithreaded case
+    // Probably not needed, since the class is loaded with static initialization
+    // only once, even in the multithreaded case
     private static void initializeKey() {
         if (secretKey == null) {
             synchronized (lock) {
@@ -56,22 +58,25 @@ public final class JwtUtilsHmacSHA256 {
     }
 
     private static String loadJwtSecret() {
-        Properties properties = new Properties();
-        try (InputStream input = JwtUtilsHmacSHA256.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE)) {
-            if (input == null) {
-                throw new JwtConfigurationException("Unable to find " + PROPERTIES_FILE);
-            }
-            properties.load(input);
+        // First try to load from environment variable
+        String secret = System.getenv(ENV_SECRET_KEY);
 
-            String secret = properties.getProperty(SECRET_PROPERTY);
-            if (secret == null || secret.trim().isEmpty()) {
-                throw new JwtConfigurationException(SECRET_PROPERTY + " is not configured in " + PROPERTIES_FILE);
+        // Then try to load from .env file if not found in environment
+        if (secret == null || secret.trim().isEmpty()) {
+            try {
+                Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+                secret = dotenv.get(ENV_SECRET_KEY);
+            } catch (Exception e) {
+                logger.debug("No .env file found or failed to load .env file", e);
             }
-
-            return secret.trim();
-        } catch (Exception e) {
-            throw new JwtConfigurationException("Failed to load JWT secret from " + PROPERTIES_FILE, e);
         }
+
+        if (secret == null || secret.trim().isEmpty()) {
+            throw new JwtConfigurationException(
+                    "JWT secret not found in environment variables, .env file, or ");
+        }
+
+        return secret.trim();
     }
 
     private static Mac createMacInstance() throws NoSuchAlgorithmException, InvalidKeyException {
