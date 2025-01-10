@@ -24,6 +24,8 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 public class EnterpriseAuthService {
     private static final Logger logger = LoggerFactory.getLogger(EnterpriseAuthService.class);
@@ -41,36 +43,42 @@ public class EnterpriseAuthService {
         this.httpClient = HttpClient.newHttpClient();
     }
 
-    public Unionpay3060ApiEnterpriseAuthResponse processEnterpriseAuth(EnterpriseAuthRequest request, UserDTO userDTO)
-            throws Exception {
-        // init unionpay secssUtil
-        SecssUtil secssUtil = new SecssUtil();
+    public CompletableFuture<Unionpay3060ApiEnterpriseAuthResponse> processEnterpriseAuth(
+            EnterpriseAuthRequest request, UserDTO userDTO) {
 
-        if (EnvConfig.getConfigPath() == null || EnvConfig.getConfigPath().isEmpty()) {
-            throw new RuntimeException("secss.configPath is not set");
-        }
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // init unionpay secssUtil
+                SecssUtil secssUtil = new SecssUtil();
+                if (EnvConfig.getConfigPath() == null || EnvConfig.getConfigPath().isEmpty()) {
+                    throw new RuntimeException("secss.configPath is not set");
+                }
 
-        boolean initResult = secssUtil.init(EnvConfig.getConfigPath());
-        if (!initResult) {
-            logger.error("SecssUtil initialization failed");
-            throw new RuntimeException("SecssUtil initialization failed");
-        }
+                boolean initResult = secssUtil.init(EnvConfig.getConfigPath());
+                if (!initResult) {
+                    logger.error("SecssUtil initialization failed");
+                    throw new RuntimeException("SecssUtil initialization failed");
+                }
 
-        // Create request data
-        Map<String, String> requestData = createRequestData(request, userDTO);
+                // Create request data
+                Map<String, String> requestData = createRequestData(request, userDTO);
 
-        // Process sensitive data
-        String encryptedSensData = encryptSensitiveData(request, secssUtil);
-        requestData.put("sensData", encryptedSensData);
+                // Process sensitive data
+                String encryptedSensData = encryptSensitiveData(request, secssUtil);
+                requestData.put("sensData", encryptedSensData);
 
-        // Prepare final request
-        Map<String, Object> finalRequest = prepareFinalRequest(requestData, secssUtil);
+                // Prepare final request
+                Map<String, Object> finalRequest = prepareFinalRequest(requestData, secssUtil);
 
-        // Send request and get response
-        String responseBody = sendRequest(finalRequest);
+                // Send request and get response
+                String responseBody = sendRequest(finalRequest);
 
-        // Process response
-        return processResponse(responseBody, secssUtil);
+                // Process response
+                return processResponse(responseBody, secssUtil);
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        });
     }
 
     private Map<String, String> createRequestData(EnterpriseAuthRequest request, UserDTO userDTO) {

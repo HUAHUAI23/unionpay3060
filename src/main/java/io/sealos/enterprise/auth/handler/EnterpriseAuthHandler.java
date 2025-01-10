@@ -17,6 +17,8 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 import io.javalin.openapi.*;
@@ -46,90 +48,105 @@ public class EnterpriseAuthHandler {
         }
     }
 
-    public static void handleEnterpriseAuth(Context ctx) throws Exception {
+    public static void handleEnterpriseAuth(Context ctx) {
+        ctx.future(() -> {
+            return CompletableFuture.supplyAsync(() -> {
+                try {
+                    // 验证请求体
+                    EnterpriseAuthRequest request = validateRequest(ctx);
+                    UserDTO userDTO = ctx.attribute("user");
+
+                    // 异步处理认证请求
+                    return service.processEnterpriseAuth(request, userDTO)
+                            .thenAccept(response -> handleResponse(ctx, response, request, userDTO))
+                            .exceptionally(throwable -> {
+                                throw new CompletionException(throwable);
+                            });
+                } catch (Exception e) {
+                    return CompletableFuture.failedFuture(e);
+                }
+            }).thenCompose(future -> future);
+        });
+    }
+
+    private static EnterpriseAuthRequest validateRequest(Context ctx) {
         EnterpriseAuthRequest request;
         try {
             request = ctx.bodyAsClass(EnterpriseAuthRequest.class);
             if (request == null) {
                 throw new BusinessException(ErrorCode.VALIDATION_ERROR, "Request body cannot be null", 400);
             }
+
+            // 执行验证
+            Set<ConstraintViolation<EnterpriseAuthRequest>> violations = validator.validate(request);
+            if (!violations.isEmpty()) {
+                String errorMessages = violations.stream()
+                        .map(ConstraintViolation::getMessage)
+                        .collect(Collectors.joining("; "));
+                throw new IllegalArgumentException(errorMessages);
+            }
         } catch (Exception e) {
             logger.error("Failed to parse request body: {}", e.getMessage());
             throw new BusinessException(ErrorCode.BUSINESS_ERROR, "Invalid request body format: " + e.getMessage(),
                     400);
         }
+        return request;
+    }
 
-        // 执行验证
-        Set<ConstraintViolation<EnterpriseAuthRequest>> violations = validator.validate(request);
-        if (!violations.isEmpty()) {
-            // 收集所有验证错误信息
-            String errorMessages = violations.stream()
-                    .map(ConstraintViolation::getMessage)
-                    .collect(Collectors.joining("; "));
-
-            logger.warn("Validation failed: {}", errorMessages);
-            throw new IllegalArgumentException(errorMessages);
-        }
-
-        UserDTO userDTO = ctx.attribute("user");
-        // Process request
-        Unionpay3060ApiEnterpriseAuthResponse response = service.processEnterpriseAuth(request, userDTO);
-
+    private static void handleResponse(Context ctx, Unionpay3060ApiEnterpriseAuthResponse response,
+            EnterpriseAuthRequest request, UserDTO userDTO) {
         if (response == null) {
             throw new BusinessException(ErrorCode.BUSINESS_ERROR, "3060 api response is null", 500);
         }
+
+        EnterpriseAuthResponse enterpriseAuthResponse = createEnterpriseAuthResponse(response, request);
+        logResponse(userDTO, response);
+        ctx.json(ApiResponse.success(enterpriseAuthResponse));
+    }
+
+    // 辅助方法，创建响应对象
+    private static EnterpriseAuthResponse createEnterpriseAuthResponse(
+            Unionpay3060ApiEnterpriseAuthResponse response,
+            EnterpriseAuthRequest request) {
         EnterpriseAuthResponse enterpriseAuthResponse = new EnterpriseAuthResponse();
+        boolean isSuccess = "00000000".equals(response.getRespCode());
 
-        if ("00000000".equals(response.getRespCode())) {
-            enterpriseAuthResponse.setRespCode(response.getRespCode());
-            enterpriseAuthResponse.setRespMsg(response.getRespMsg());
-            enterpriseAuthResponse.setIsTransactionSuccess(true);
+        enterpriseAuthResponse.setRespCode(response.getRespCode());
+        enterpriseAuthResponse.setRespMsg(response.getRespMsg());
+        enterpriseAuthResponse.setIsTransactionSuccess(isSuccess);
+        enterpriseAuthResponse.setOrderId(response.getOrderId());
+        enterpriseAuthResponse.setIsCharged("0000".equals(response.getOrderStatus()));
+        enterpriseAuthResponse.setTransAmt(response.getTransAmt());
 
+        if (isSuccess) {
             enterpriseAuthResponse.setKey(response.getKey());
             enterpriseAuthResponse.setAccountBank(response.getAccountBank());
             enterpriseAuthResponse.setAccountProv(response.getAccountProv());
             enterpriseAuthResponse.setAccountCity(response.getAccountCity());
             enterpriseAuthResponse.setSubBank(response.getSubBank());
-
             enterpriseAuthResponse.setEnterpriseName(response.getSensData().getKeyName());
             enterpriseAuthResponse.setLegalPersonName(response.getSensData().getUsrName());
-
-            enterpriseAuthResponse.setOrderId(response.getOrderId());
-            enterpriseAuthResponse.setIsCharged("0000".equals(response.getOrderStatus()));
-
-            enterpriseAuthResponse.setTransAmt(response.getTransAmt());
-
-            logger.info("User: {}, RegionUid: {}, orderId: {}\nAuth Success, respMsg: {}",
-                    ((UserDTO) ctx.attribute("user")).getUserId(),
-                    ((UserDTO) ctx.attribute("user")).getRegionUid(),
-                    response.getOrderId(),
-                    response.getRespMsg());
-
-            ctx.json(ApiResponse.success(enterpriseAuthResponse));
         } else {
-            enterpriseAuthResponse.setRespCode(response.getRespCode());
-            enterpriseAuthResponse.setRespMsg(response.getRespMsg());
-            enterpriseAuthResponse.setIsTransactionSuccess(false);
-
             enterpriseAuthResponse.setKey(request.getKey());
             enterpriseAuthResponse.setAccountBank(request.getAccountBank());
             enterpriseAuthResponse.setAccountProv(request.getAccountProv());
             enterpriseAuthResponse.setAccountCity(request.getAccountCity());
             enterpriseAuthResponse.setSubBank(request.getSubBank());
-
             enterpriseAuthResponse.setEnterpriseName(request.getKeyName());
             enterpriseAuthResponse.setLegalPersonName(request.getUsrName());
-
-            enterpriseAuthResponse.setOrderId(response.getOrderId());
-            enterpriseAuthResponse.setIsCharged("0000".equals(response.getOrderStatus()));
-
-            logger.info("User: {}, RegionUid: {}, orderId: {}\nAuth Failed, respMsg: {}",
-                    ((UserDTO) ctx.attribute("user")).getUserId(),
-                    ((UserDTO) ctx.attribute("user")).getRegionUid(),
-                    response.getOrderId(),
-                    response.getRespMsg());
-
-            ctx.json(ApiResponse.success(enterpriseAuthResponse));
         }
+
+        return enterpriseAuthResponse;
+    }
+
+    private static void logResponse(UserDTO userDTO, Unionpay3060ApiEnterpriseAuthResponse response) {
+        String logMessage = String.format(
+                "User: %s, RegionUid: %s, orderId: %s\nAuth %s, respMsg: %s",
+                userDTO.getUserId(),
+                userDTO.getRegionUid(),
+                response.getOrderId(),
+                "00000000".equals(response.getRespCode()) ? "Success" : "Failed",
+                response.getRespMsg());
+        logger.info(logMessage);
     }
 }
