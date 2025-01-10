@@ -66,10 +66,6 @@ public class EnterpriseAuthService {
         // Prepare final request
         Map<String, Object> finalRequest = prepareFinalRequest(requestData, secssUtil);
 
-        logger.info("User: {},RegionUid: {},orderId: {}", userDTO.getUserId(),
-                userDTO.getRegionUid(),
-                requestData.get("orderId"));
-
         // Send request and get response
         String responseBody = sendRequest(finalRequest);
 
