@@ -19,6 +19,11 @@ public class Main {
         // Configure error handling
         ErrorHandler.configure(app);
 
+        app.get("/test", ctx -> {
+            ctx.result("Test response");
+            ctx.status(200);
+        });
+
         // Register routes
         Routes.register(app);
 
@@ -27,5 +32,8 @@ public class Main {
         app.start(port);
 
         logger.info("Server started on port {}", port);
+        logger.info("Swagger UI available at: http://localhost:{}{}", port, EnvConfig.getSwaggerPath());
+        logger.info("ReDoc available at: http://localhost:{}{}", port, EnvConfig.getRedocPath());
+        logger.info("OpenAPI JSON available at: http://localhost:{}{}", port, EnvConfig.getDocsPath());
     }
 }

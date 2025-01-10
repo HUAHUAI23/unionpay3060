@@ -19,36 +19,56 @@ import jakarta.validation.ValidatorFactory;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.javalin.openapi.*;
+
+@OpenApi(path = "/enterprise-auth", methods = {
+        HttpMethod.POST }, summary = "Authenticate Enterprise", operationId = "authenticateEnterprise", description = "Authenticates an enterprise using provided credentials", tags = {
+                "Enterprise Authentication" }, security = @OpenApiSecurity(name = "Bearer"), requestBody = @OpenApiRequestBody(content = @OpenApiContent(from = EnterpriseAuthRequest.class), required = true, description = "Enterprise authentication credentials"), responses = {
+                        @OpenApiResponse(status = "200", description = "Authentication successful", content = @OpenApiContent(from = EnterpriseAuthResponse.class)),
+                        @OpenApiResponse(status = "400", description = "Invalid request parameters", content = @OpenApiContent(from = ApiResponse.class)),
+                        @OpenApiResponse(status = "401", description = "Unauthorized", content = @OpenApiContent(from = ApiResponse.class)),
+                        @OpenApiResponse(status = "500", description = "Internal server error", content = @OpenApiContent(from = ApiResponse.class))
+                })
 public class EnterpriseAuthHandler {
     private static final Logger logger = LoggerFactory.getLogger(EnterpriseAuthHandler.class);
     private static final EnterpriseAuthService service = new EnterpriseAuthService();
-    // Add static validator
-    private static final ValidatorFactory VALIDATOR_FACTORY = Validation.buildDefaultValidatorFactory();
-    private static final Validator VALIDATOR = VALIDATOR_FACTORY.getValidator();
+
+    // 使用静态初始化块来创建验证器，这样可以更好地处理可能的异常
+    private static final Validator validator;
+
+    static {
+        try {
+            ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+            validator = factory.getValidator();
+        } catch (Exception e) {
+            logger.error("Failed to initialize validator", e);
+            throw new RuntimeException("Could not initialize validator", e);
+        }
+    }
 
     public static void handleEnterpriseAuth(Context ctx) throws Exception {
-        // Parse request body
-        EnterpriseAuthRequest request = ctx.bodyAsClass(EnterpriseAuthRequest.class);
+        EnterpriseAuthRequest request;
+        try {
+            request = ctx.bodyAsClass(EnterpriseAuthRequest.class);
+            if (request == null) {
+                throw new BusinessException(ErrorCode.VALIDATION_ERROR, "Request body cannot be null", 400);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to parse request body: {}", e.getMessage());
+            throw new BusinessException(ErrorCode.BUSINESS_ERROR, "Invalid request body format: " + e.getMessage(),
+                    400);
+        }
 
-        // Use static validator
-        Set<ConstraintViolation<EnterpriseAuthRequest>> violations = VALIDATOR.validate(request);
-
+        // 执行验证
+        Set<ConstraintViolation<EnterpriseAuthRequest>> violations = validator.validate(request);
         if (!violations.isEmpty()) {
-            // 将验证错误信息合并成一个字符串，保持与现有错误处理一致
-            String errorMessage = violations.stream()
-                    .map(violation -> {
-                        String path = violation.getPropertyPath().toString();
-                        String message = violation.getMessage();
-                        return path + ": " + message;
-                    })
+            // 收集所有验证错误信息
+            String errorMessages = violations.stream()
+                    .map(ConstraintViolation::getMessage)
                     .collect(Collectors.joining("; "));
 
-            // 使用现有的 BusinessException 格式
-            throw new BusinessException(
-                    ErrorCode.VALIDATION_ERROR,
-                    errorMessage, // 格式化的错误信息
-                    400 // HTTP 状态码
-            );
+            logger.warn("Validation failed: {}", errorMessages);
+            throw new IllegalArgumentException(errorMessages);
         }
 
         UserDTO userDTO = ctx.attribute("user");
@@ -86,7 +106,6 @@ public class EnterpriseAuthHandler {
                     response.getRespMsg());
 
             ctx.json(ApiResponse.success(enterpriseAuthResponse));
-
         } else {
             enterpriseAuthResponse.setRespCode(response.getRespCode());
             enterpriseAuthResponse.setRespMsg(response.getRespMsg());

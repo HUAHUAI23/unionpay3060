@@ -3,6 +3,8 @@ package io.sealos.enterprise.auth.routes;
 import io.javalin.Javalin;
 import io.sealos.enterprise.auth.handler.EnterpriseAuthHandler;
 import io.sealos.enterprise.auth.middleware.AuthMiddleware;
+import io.sealos.enterprise.auth.constants.ApiVersion;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,24 +12,21 @@ public class Routes {
     private static final Logger logger = LoggerFactory.getLogger(Routes.class);
 
     public static void register(Javalin app) {
+        logger.info("Register global before matched middleware...");
+        app.beforeMatched(AuthMiddleware::authenticate);
 
-        logger.info("Register global before middleware...");
+        logger.info("Register routes...");
 
-        // Add authentication middleware
-        app.before(AuthMiddleware::authenticate);
+        // 注册 v1 版本的 API 端点
+        app.post(ApiVersion.getDefaultVersion() + "/enterprise-auth",
+                EnterpriseAuthHandler::handleEnterpriseAuth);
 
-        // app.beforeMatched(ctx -> {
-        // // add check role logic here
-        // });
-
-        logger.info("Register route...");
-        // route
-        app.post("/enterprise-auth", EnterpriseAuthHandler::handleEnterpriseAuth);
+        // 如果有更多端点，继续添加
+        // app.get(API_VERSION + "/other-endpoint", OtherHandler::handle);
 
         // Add more routes here as needed
-
         // route with role example
-        // app.post("/enterprise-auth", EnterpriseAuthHandler::handleEnterpriseAuth,
-        // Role.USER_WRITE);
+        // app.post(API_VERSION + "/enterprise-auth",
+        // EnterpriseAuthHandler::handleEnterpriseAuth, Role.USER_WRITE);
     }
 }

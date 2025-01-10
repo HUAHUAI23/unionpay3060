@@ -20,6 +20,11 @@ public class EnvConfig {
     private static final String APP_ENV = getEnv("APP_ENV", "prod");
     private static final int DEFAULT_PORT = 2342;
 
+    // OpenAPI paths configuration
+    private static final String DOCS_PATH_ENV = "OPENAPI_DOCS_PATH";
+    private static final String SWAGGER_PATH_ENV = "OPENAPI_SWAGGER_PATH";
+    private static final String REDOC_PATH_ENV = "OPENAPI_REDOC_PATH";
+
     public static boolean isDevelopment() {
         return "dev".equals(APP_ENV);
     }
@@ -58,5 +63,17 @@ public class EnvConfig {
 
     public static String getEnvironment() {
         return APP_ENV;
+    }
+
+    public static String getDocsPath() {
+        return System.getenv().getOrDefault(DOCS_PATH_ENV, "/openapi.json");
+    }
+
+    public static String getSwaggerPath() {
+        return System.getenv().getOrDefault(SWAGGER_PATH_ENV, "/swagger");
+    }
+
+    public static String getRedocPath() {
+        return System.getenv().getOrDefault(REDOC_PATH_ENV, "/redoc");
     }
 }

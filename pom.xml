@@ -16,8 +16,13 @@
         <jwt.version>0.12.6</jwt.version>
         <lombok.version>1.18.36</lombok.version>
         <dotenv.version>3.1.0</dotenv.version>
+
         <jakarta.validation.version>3.1.0</jakarta.validation.version>
-        <hibernate.validator.version>8.0.2.Final</hibernate.validator.version>
+        <hibernate.validator.version>9.0.0.CR1</hibernate.validator.version>
+        <expressly.version>6.0.0-M1</expressly.version>
+
+        <javalin.openapi.version>6.3.0</javalin.openapi.version>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -36,7 +41,7 @@
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
-        <!-- Javalin -->
+        <!-- End Javalin -->
 
         <!-- log -->
         <!-- SLF4J Simple -->
@@ -82,7 +87,7 @@
             <version>${dotenv.version}</version>
         </dependency>
 
-        <!-- jakarta validation -->
+        <!-- validation -->
         <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
@@ -93,8 +98,45 @@
             <artifactId>hibernate-validator</artifactId>
             <version>${hibernate.validator.version}</version>
         </dependency>
-        <!-- jakarta validation -->
+        <!-- 添加 EL 实现，用于消息插值 -->
+        <dependency>
+            <groupId>org.glassfish.expressly</groupId>
+            <artifactId>expressly</artifactId>
+            <version>${expressly.version}</version>
+        </dependency>
+        <!-- validation end -->
 
+        <!-- OpenApi plugin -->
+        <dependency>
+            <groupId>io.javalin.community.openapi</groupId>
+            <artifactId>javalin-openapi-plugin</artifactId>
+            <version>${javalin.openapi.version}</version>
+        </dependency>
+        <!-- Swagger plugin -->
+        <dependency>
+            <groupId>io.javalin.community.openapi</groupId>
+            <artifactId>javalin-swagger-plugin</artifactId>
+            <version>${javalin.openapi.version}</version>
+        </dependency>
+        <!-- ReDoc plugin -->
+        <dependency>
+            <groupId>io.javalin.community.openapi</groupId>
+            <artifactId>javalin-redoc-plugin</artifactId>
+            <version>${javalin.openapi.version}</version>
+        </dependency>
+        <!-- (Optional on 5.3.0+) If you want to use custom ReDoc version, you have to exclude all transitive dependencies -->
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>redoc</artifactId>
+            <version>2.0.0-rc.70</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- OpenApi plugin end -->
 
         <!-- 银联安全控件 -->
         <dependency>
@@ -120,7 +162,40 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/libs/commons-codec-1.5.jar</systemPath>
         </dependency>
+        <!-- 银联安全控件 -->
+
+
+
+
 
     </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.10.1</version>
+                    <configuration>
+                        <annotationProcessorPaths>
+                            <!-- Lombok 注解处理器 -->
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                            <!-- OpenAPI 注解处理器 -->
+                            <path>
+                                <groupId>io.javalin.community.openapi</groupId>
+                                <artifactId>openapi-annotation-processor</artifactId>
+                                <version>${javalin.openapi.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
 </project>

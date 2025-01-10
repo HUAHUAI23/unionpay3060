@@ -11,6 +11,9 @@ public class AppConfig {
         // Configure CORS
         config.bundledPlugins.enableCors(cors -> cors.addRule(rule -> rule.anyHost()));
 
+        // Configure OpenAPI, Swagger and ReDoc
+        OpenApiConfig.configure(config);
+
         if (EnvConfig.isDevelopment()) {
             // Configure debug logging
             config.bundledPlugins.enableDevLogging();
