@@ -45,8 +45,7 @@ public class OpenApiConfig {
                                     .description("Enterprise Authentication Service API Documentation")
                                     .termsOfService("https://sealos.io")
                                     .contact("Sealos Team", "https://sealos.io", "support@sealos.io")
-                                    .license("Apache 2.0", "https://www.apache.org/licenses/LICENSE-2.0", "Apache-2.0")
-                                    .version("1.0.0");
+                                    .license("Apache 2.0", "https://www.apache.org/licenses/LICENSE-2.0", "Apache-2.0");
                         })
                         .withServer(server -> server
                                 .description("Enterprise Auth Server")
@@ -55,9 +54,13 @@ public class OpenApiConfig {
                                         String.valueOf(EnvConfig.getServerPort()),
                                         String.valueOf(EnvConfig.getServerPort()))
                                 .variable("basePath", "Base path of the server", "", "", "/v1", "v2"))
+
                         .withSecurity(security -> security
-                                .withBearerAuth()
+                                .withBearerAuth("Bearer") // Give it a specific name
                                 .withGlobalSecurity("Bearer", globalSecurity -> {
-                                }))));
+                                }) // Make it global
+                        )
+
+                ));
     }
 }

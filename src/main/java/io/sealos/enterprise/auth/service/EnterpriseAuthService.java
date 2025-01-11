@@ -25,7 +25,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 public class EnterpriseAuthService {
     private static final Logger logger = LoggerFactory.getLogger(EnterpriseAuthService.class);
@@ -46,39 +45,42 @@ public class EnterpriseAuthService {
     public CompletableFuture<Unionpay3060ApiEnterpriseAuthResponse> processEnterpriseAuth(
             EnterpriseAuthRequest request, UserDTO userDTO) {
 
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                // init unionpay secssUtil
-                SecssUtil secssUtil = new SecssUtil();
-                if (EnvConfig.getConfigPath() == null || EnvConfig.getConfigPath().isEmpty()) {
-                    throw new RuntimeException("secss.configPath is not set");
-                }
-
-                boolean initResult = secssUtil.init(EnvConfig.getConfigPath());
-                if (!initResult) {
-                    logger.error("SecssUtil initialization failed");
-                    throw new RuntimeException("SecssUtil initialization failed");
-                }
-
-                // Create request data
-                Map<String, String> requestData = createRequestData(request, userDTO);
-
-                // Process sensitive data
-                String encryptedSensData = encryptSensitiveData(request, secssUtil);
-                requestData.put("sensData", encryptedSensData);
-
-                // Prepare final request
-                Map<String, Object> finalRequest = prepareFinalRequest(requestData, secssUtil);
-
-                // Send request and get response
-                String responseBody = sendRequest(finalRequest);
-
-                // Process response
-                return processResponse(responseBody, secssUtil);
-            } catch (Exception e) {
-                throw new CompletionException(e);
+        try {
+            // init unionpay secssUtil
+            SecssUtil secssUtil = new SecssUtil();
+            if (EnvConfig.getConfigPath() == null || EnvConfig.getConfigPath().isEmpty()) {
+                throw new RuntimeException("secss.configPath is not set");
             }
-        });
+
+            boolean initResult = secssUtil.init(EnvConfig.getConfigPath());
+            if (!initResult) {
+                logger.error("SecssUtil initialization failed");
+                throw new RuntimeException("SecssUtil initialization failed");
+            }
+
+            // Create request data
+            Map<String, String> requestData = createRequestData(request, userDTO);
+
+            // Process sensitive data
+            String encryptedSensData = encryptSensitiveData(request, secssUtil);
+            requestData.put("sensData", encryptedSensData);
+
+            // Prepare final request
+            Map<String, Object> finalRequest = prepareFinalRequest(requestData, secssUtil);
+
+            // 返回异步请求链
+            return sendRequest(finalRequest)
+                    .thenCompose(responseBody -> {
+                        try {
+                            return CompletableFuture.completedFuture(
+                                    processResponse(responseBody, secssUtil));
+                        } catch (Exception e) {
+                            return CompletableFuture.failedFuture(e);
+                        }
+                    });
+        } catch (Exception e) {
+            return CompletableFuture.failedFuture(e);
+        }
     }
 
     private Map<String, String> createRequestData(EnterpriseAuthRequest request, UserDTO userDTO) {
@@ -145,24 +147,28 @@ public class EnterpriseAuthService {
         return finalRequest;
     }
 
-    private String sendRequest(Map<String, Object> finalRequest) throws Exception {
-        String requestParams = StringUtils.mapToUrlParams(finalRequest);
+    private CompletableFuture<String> sendRequest(Map<String, Object> finalRequest) {
+        try {
+            String requestParams = StringUtils.mapToUrlParams(finalRequest);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Unionpay3060Api))
+                    .header("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8")
+                    .header("Accept-Charset", "UTF-8")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestParams, StandardCharsets.UTF_8))
+                    .build();
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(Unionpay3060Api))
-                .header("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8")
-                .header("Accept-Charset", "UTF-8")
-                .POST(HttpRequest.BodyPublishers.ofString(requestParams, StandardCharsets.UTF_8))
-                .build();
-
-        HttpResponse<String> response = httpClient.send(request,
-                HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-        if (response.statusCode() != 200) {
-            throw new RuntimeException("HTTP request failed with status code: " + response.statusCode());
+            return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+                    .thenCompose(response -> {
+                        if (response.statusCode() != 200) {
+                            return CompletableFuture.failedFuture(
+                                    new RuntimeException(
+                                            "HTTP request failed with status code: " + response.statusCode()));
+                        }
+                        return CompletableFuture.completedFuture(response.body());
+                    });
+        } catch (Exception e) {
+            return CompletableFuture.failedFuture(e);
         }
-
-        return response.body();
     }
 
     private Unionpay3060ApiEnterpriseAuthResponse processResponse(String responseBody, SecssUtil secssUtil)

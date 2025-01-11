@@ -18,8 +18,6 @@ public class ErrorHandler {
         // 404 处理
         app.error(404, ctx -> {
             try {
-                logger.info("404 error");
-
                 String errorId = generateErrorId();
                 logRequestInfo(errorId, ctx);
                 ctx.json(ApiResponse.error(
@@ -35,7 +33,6 @@ public class ErrorHandler {
         // 业务异常处理
         app.<BusinessException>exception(BusinessException.class, (e, ctx) -> {
             try {
-                logger.info("BusinessException error");
                 String errorId = generateErrorId();
                 logError(errorId, e, ctx);
                 ctx.status(e.getStatusCode() != null ? e.getStatusCode() : 400);
@@ -49,7 +46,6 @@ public class ErrorHandler {
         // 参数验证异常处理
         app.<IllegalArgumentException>exception(IllegalArgumentException.class, (e, ctx) -> {
             try {
-                logger.info("IllegalArgumentException error");
                 String errorId = generateErrorId();
                 logError(errorId, e, ctx);
                 ctx.status(400);
@@ -66,7 +62,6 @@ public class ErrorHandler {
         // 未知异常处理
         app.<Exception>exception(Exception.class, (e, ctx) -> {
             try {
-                logger.info("Exception error");
                 String errorId = generateErrorId();
                 logError(errorId, e, ctx);
                 ctx.status(500);

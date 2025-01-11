@@ -20,6 +20,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import io.javalin.openapi.*;
 
@@ -50,22 +52,28 @@ public class EnterpriseAuthHandler {
 
     public static void handleEnterpriseAuth(Context ctx) {
         ctx.future(() -> {
-            return CompletableFuture.supplyAsync(() -> {
-                try {
-                    // 验证请求体
-                    EnterpriseAuthRequest request = validateRequest(ctx);
-                    UserDTO userDTO = ctx.attribute("user");
+            try {
+                // 验证请求体
+                EnterpriseAuthRequest request = validateRequest(ctx);
+                UserDTO userDTO = ctx.attribute("user");
 
-                    // 异步处理认证请求
-                    return service.processEnterpriseAuth(request, userDTO)
-                            .thenAccept(response -> handleResponse(ctx, response, request, userDTO))
-                            .exceptionally(throwable -> {
-                                throw new CompletionException(throwable);
-                            });
-                } catch (Exception e) {
-                    return CompletableFuture.failedFuture(e);
-                }
-            }).thenCompose(future -> future);
+                return service.processEnterpriseAuth(request, userDTO).orTimeout(5, TimeUnit.MINUTES)
+                        .thenAccept(response -> handleResponse(ctx, response, request, userDTO))
+                        .exceptionally(throwable -> {
+                            if (throwable instanceof TimeoutException) {
+                                // 处理超时异常
+                                throw new RuntimeException("Request timeout after 5 minutes");
+                            }
+                            // 如果是 CompletionException，则获取原始异常
+                            Throwable cause = throwable instanceof CompletionException
+                                    ? throwable.getCause()
+                                    : throwable;
+                            // 包装成 RuntimeException
+                            throw new RuntimeException(cause);
+                        });
+            } catch (Exception e) {
+                return CompletableFuture.failedFuture(e);
+            }
         });
     }
 

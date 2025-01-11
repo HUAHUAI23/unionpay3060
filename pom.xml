@@ -18,7 +18,7 @@
         <dotenv.version>3.1.0</dotenv.version>
 
         <jakarta.validation.version>3.1.0</jakarta.validation.version>
-        <hibernate.validator.version>9.0.0.CR1</hibernate.validator.version>
+        <hibernate.validator.version>8.0.2.Final</hibernate.validator.version>
         <expressly.version>6.0.0-M1</expressly.version>
 
         <javalin.openapi.version>6.3.0</javalin.openapi.version>
@@ -163,10 +163,6 @@
             <systemPath>${project.basedir}/libs/commons-codec-1.5.jar</systemPath>
         </dependency>
         <!-- 银联安全控件 -->
-
-
-
-
 
     </dependencies>
 
