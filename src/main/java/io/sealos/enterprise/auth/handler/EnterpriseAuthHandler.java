@@ -25,14 +25,6 @@ import java.util.concurrent.TimeoutException;
 
 import io.javalin.openapi.*;
 
-@OpenApi(path = "/enterprise-auth", methods = {
-        HttpMethod.POST }, summary = "Authenticate Enterprise", operationId = "authenticateEnterprise", description = "Authenticates an enterprise using provided credentials", tags = {
-                "Enterprise Authentication" }, security = @OpenApiSecurity(name = "Bearer"), requestBody = @OpenApiRequestBody(content = @OpenApiContent(from = EnterpriseAuthRequest.class), required = true, description = "Enterprise authentication credentials"), responses = {
-                        @OpenApiResponse(status = "200", description = "Authentication successful", content = @OpenApiContent(from = EnterpriseAuthResponse.class)),
-                        @OpenApiResponse(status = "400", description = "Invalid request parameters", content = @OpenApiContent(from = ApiResponse.class)),
-                        @OpenApiResponse(status = "401", description = "Unauthorized", content = @OpenApiContent(from = ApiResponse.class)),
-                        @OpenApiResponse(status = "500", description = "Internal server error", content = @OpenApiContent(from = ApiResponse.class))
-                })
 public class EnterpriseAuthHandler {
     private static final Logger logger = LoggerFactory.getLogger(EnterpriseAuthHandler.class);
     private static final EnterpriseAuthService service = new EnterpriseAuthService();
@@ -50,6 +42,14 @@ public class EnterpriseAuthHandler {
         }
     }
 
+    @OpenApi(path = "/enterprise-auth", methods = {
+            HttpMethod.POST }, summary = "Authenticate Enterprise", operationId = "authenticateEnterprise", description = "Authenticates an enterprise using provided credentials", tags = {
+                    "Enterprise Authentication" }, security = @OpenApiSecurity(name = "Bearer"), requestBody = @OpenApiRequestBody(content = @OpenApiContent(from = EnterpriseAuthRequest.class), required = true, description = "Enterprise authentication credentials"), responses = {
+                            @OpenApiResponse(status = "200", description = "Authentication successful", content = @OpenApiContent(from = EnterpriseAuthResponse.class)),
+                            @OpenApiResponse(status = "400", description = "Invalid request parameters", content = @OpenApiContent(from = ApiResponse.class)),
+                            @OpenApiResponse(status = "401", description = "Unauthorized", content = @OpenApiContent(from = ApiResponse.class)),
+                            @OpenApiResponse(status = "500", description = "Internal server error", content = @OpenApiContent(from = ApiResponse.class))
+                    })
     public static void handleEnterpriseAuth(Context ctx) {
         ctx.future(() -> {
             try {

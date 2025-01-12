@@ -19,11 +19,6 @@ public class Main {
         // Configure error handling
         ErrorHandler.configure(app);
 
-        app.get("/test", ctx -> {
-            ctx.result("Test response");
-            ctx.status(200);
-        });
-
         // Register routes
         Routes.register(app);
 

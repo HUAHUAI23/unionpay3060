@@ -174,19 +174,21 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.10.1</version>
                     <configuration>
+                        <source>17</source>
+                        <target>17</target>
                         <annotationProcessorPaths>
                             <!-- Lombok 注解处理器 -->
-                            <path>
+                            <annotationProcessorPath>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok</artifactId>
                                 <version>${lombok.version}</version>
-                            </path>
+                            </annotationProcessorPath>
                             <!-- OpenAPI 注解处理器 -->
-                            <path>
+                            <annotationProcessorPath>
                                 <groupId>io.javalin.community.openapi</groupId>
                                 <artifactId>openapi-annotation-processor</artifactId>
                                 <version>${javalin.openapi.version}</version>
-                            </path>
+                            </annotationProcessorPath>
                         </annotationProcessorPaths>
                     </configuration>
                 </plugin>

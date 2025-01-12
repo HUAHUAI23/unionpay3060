@@ -17,6 +17,11 @@ public class Routes {
 
         logger.info("Register routes...");
 
+        app.get("/test", ctx -> {
+            ctx.result("Test response");
+            ctx.status(200);
+        });
+
         // 注册 v1 版本的 API 端点
         app.post(ApiVersion.getDefaultVersion() + "/enterprise-auth",
                 EnterpriseAuthHandler::handleEnterpriseAuth);

@@ -19,6 +19,7 @@ public class ErrorHandler {
         app.error(404, ctx -> {
             try {
                 String errorId = generateErrorId();
+                logger.warn("404 Resource not found: {}", ctx.path());
                 logRequestInfo(errorId, ctx);
                 ctx.json(ApiResponse.error(
                         ErrorCode.RESOURCE_NOT_FOUND.getCode(),
