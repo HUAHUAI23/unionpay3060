@@ -66,7 +66,7 @@ public class EnvConfig {
     }
 
     public static String getDocsPath() {
-        return System.getenv().getOrDefault(DOCS_PATH_ENV, "/openapi.json");
+        return System.getenv().getOrDefault(DOCS_PATH_ENV, "/openapi");
     }
 
     public static String getSwaggerPath() {

@@ -13,7 +13,7 @@ public class AuthMiddleware {
     // API 文档路径 - 精确匹配
     private static final Set<String> EXCLUDED_PATHS = Set.of(
             "/redoc",
-            "/openapi.json",
+            "/openapi",
             "/swagger");
 
     // 静态资源 - 严格版本前缀
