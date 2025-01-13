@@ -134,6 +134,7 @@ public class EnterpriseAuthHandler {
             enterpriseAuthResponse.setSubBank(response.getSubBank());
             enterpriseAuthResponse.setEnterpriseName(response.getSensData().getKeyName());
             enterpriseAuthResponse.setLegalPersonName(response.getSensData().getUsrName());
+            enterpriseAuthResponse.setAccountNo(response.getSensData().getAccountNo());
         } else {
             enterpriseAuthResponse.setKey(request.getKey());
             enterpriseAuthResponse.setAccountBank(request.getAccountBank());
@@ -142,6 +143,7 @@ public class EnterpriseAuthHandler {
             enterpriseAuthResponse.setSubBank(request.getSubBank());
             enterpriseAuthResponse.setEnterpriseName(request.getKeyName());
             enterpriseAuthResponse.setLegalPersonName(request.getUsrName());
+            enterpriseAuthResponse.setAccountNo(request.getAccountNo());
         }
 
         return enterpriseAuthResponse;

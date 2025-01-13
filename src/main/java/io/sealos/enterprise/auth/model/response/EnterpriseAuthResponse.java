@@ -16,6 +16,7 @@ public class EnterpriseAuthResponse {
     private String accountProv; // 企业开户行所在省
     private String accountCity; // 企业开户行所在地区
     private String subBank; // 电子联行号
+    private String accountNo; // 企业银行收款号
 
     private String enterpriseName; // 企业名称
     private String legalPersonName;// 法人姓名
