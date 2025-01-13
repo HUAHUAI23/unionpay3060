@@ -17,7 +17,7 @@ public class AuthMiddleware {
             "/swagger");
 
     // 静态资源 - 严格版本前缀
-    private static final String SWAGGER_VERSION = "3.52.5";
+    private static final String SWAGGER_VERSION = "5.17.14";
     private static final String REDOC_VERSION = "2.0.0-rc.70";
 
     // 允许的静态资源路径模式 - 精确定义文件类型
