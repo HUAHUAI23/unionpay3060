@@ -120,12 +120,6 @@
         </dependency>
         <!-- ReDoc plugin -->
         <dependency>
-            <groupId>io.javalin.community.openapi</groupId>
-            <artifactId>javalin-redoc-plugin</artifactId>
-            <version>${javalin.openapi.version}</version>
-        </dependency>
-        <!-- (Optional on 5.3.0+) If you want to use custom ReDoc version, you have to exclude all transitive dependencies -->
-        <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>redoc</artifactId>
             <version>2.0.0-rc.70</version>
@@ -136,6 +130,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
         <!-- OpenApi plugin end -->
 
         <!-- 银联安全控件 -->
@@ -220,7 +215,7 @@
                         </annotationProcessorPaths>
                     </configuration>
                 </plugin>
-                <!-- <plugin>
+                <plugin>
                     <artifactId>maven-assembly-plugin</artifactId>
                     <configuration>
                         <descriptorRefs>
@@ -241,7 +236,7 @@
                             </goals>
                         </execution>
                     </executions>
-                </plugin> -->
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
