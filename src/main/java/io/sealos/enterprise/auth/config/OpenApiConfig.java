@@ -41,11 +41,9 @@ public class OpenApiConfig {
                 .withDefinitionConfiguration((version, definition) -> definition
                         .withInfo(info -> {
                             info.title("Sealos Enterprise Auth API")
-                                    .summary("Authentication Service for Sealos Enterprise")
                                     .description("Enterprise Authentication Service API Documentation")
                                     .termsOfService("https://sealos.io")
-                                    .contact("Sealos Team", "https://sealos.io", "support@sealos.io")
-                                    .license("Apache 2.0", "https://www.apache.org/licenses/LICENSE-2.0", "Apache-2.0");
+                                    .contact("Sealos Team", "https://sealos.io", "support@sealos.io");
                         })
                         .withServer(server -> server
                                 .description("Enterprise Auth Server")
