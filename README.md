@@ -46,5 +46,5 @@
 
 ### 使用方法
 1. 复制 .env.example 文件为 .env 文件，并配置相关环境变量
-2. 运行 `mvn clean install` 进行编译和打包
-3. 运行 `java -jar target/unionpay3060-1.0-SNAPSHOT.jar` 启动应用
+2. 运行 `mvn clean package assembly:single` 进行编译和打包
+3. 运行 `java -jar target/unionpay3060-1.0-SNAPSHOT-jar-with-dependencies.jar` 启动应用

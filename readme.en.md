@@ -38,6 +38,11 @@ An Enterprise Authentication Service built with Javalin framework, providing RES
 - Unified error handling and response format
 - Modular project structure
 
+### how to run
+1. Copy the .env.example file to .env and configure the relevant environment variables.
+2. Run mvn clean package assembly:single to compile and package the application.
+3. Run java -jar target/unionpay3060-1.0-SNAPSHOT-jar-with-dependencies.jar to start the application.
+
 
 
 
