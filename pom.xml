@@ -215,6 +215,9 @@
                         <descriptorRefs>
                             <descriptorRef>jar-with-dependencies</descriptorRef>
                         </descriptorRefs>
+                        <descriptors>
+                            <descriptor>assembly.xml</descriptor>
+                        </descriptors>
                         <archive>
                             <manifest>
                                 <mainClass>io.sealos.enterprise.auth.Main</mainClass>
