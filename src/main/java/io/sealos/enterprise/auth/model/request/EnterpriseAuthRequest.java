@@ -28,6 +28,6 @@ public class EnterpriseAuthRequest {
     private String usrName;
 
     @NotBlank(message = "银行账号不能为空")
-    @Size(min = 5, max = 19, message = "银行账号长度必须在5-19位之间")
+    @Size(min = 1, max = 32, message = "银行账号长度必须在1-32位之间")
     private String accountNo;
 }
