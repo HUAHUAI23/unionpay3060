@@ -151,12 +151,14 @@ public class EnterpriseAuthHandler {
 
     private static void logResponse(UserDTO userDTO, Unionpay3060ApiEnterpriseAuthResponse response) {
         String logMessage = String.format(
-                "User: %s, RegionUid: %s, orderId: %s\nAuth %s, respMsg: %s",
+                "User: %s, RegionUid: %s, orderId: %s\nAuth %s, respMsg: %s, respCode: %s, isCharged: %s",
                 userDTO.getUserId(),
                 userDTO.getRegionUid(),
                 response.getOrderId(),
                 "00000000".equals(response.getRespCode()) ? "Success" : "Failed",
-                response.getRespMsg());
+                response.getRespMsg(),
+                response.getRespCode(),
+                "0000".equals(response.getOrderStatus()) ? "charged" : "not charged");
         logger.info(logMessage);
     }
 }
