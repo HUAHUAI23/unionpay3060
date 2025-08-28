@@ -212,7 +212,7 @@ public class Test3060 {
             }
         });
 
-        logger.info("Server started on port 7070");
+        logger.info("Server started on port 2342");
     }
 
 }
