@@ -2,6 +2,7 @@ package io.sealos.enterprise.auth.routes;
 
 import io.javalin.Javalin;
 import io.sealos.enterprise.auth.handler.EnterpriseAuthHandler;
+import io.sealos.enterprise.auth.handler.BankHandler;
 import io.sealos.enterprise.auth.middleware.AuthMiddleware;
 import io.sealos.enterprise.auth.constants.ApiVersion;
 
@@ -25,6 +26,9 @@ public class Routes {
         // 注册 v1 版本的 API 端点
         app.post(ApiVersion.getDefaultVersion() + "/enterprise-auth",
                 EnterpriseAuthHandler::handleEnterpriseAuth);
+
+        // 银行列表
+        app.get(ApiVersion.getDefaultVersion() + "/banks", BankHandler::getBanks);
 
         // 如果有更多端点，继续添加
         // app.get(API_VERSION + "/other-endpoint", OtherHandler::handle);

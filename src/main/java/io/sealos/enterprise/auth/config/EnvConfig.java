@@ -1,6 +1,7 @@
 package io.sealos.enterprise.auth.config;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import java.nio.file.Paths;
 
 public class EnvConfig {
     private static final Dotenv dotenv = Dotenv.configure()
@@ -75,5 +76,13 @@ public class EnvConfig {
 
     public static String getRedocPath() {
         return System.getenv().getOrDefault(REDOC_PATH_ENV, "/redoc");
+    }
+
+    public static String getBankJsonPath() {
+        String path = getEnv("BANK_JSON_PATH");
+        if (path != null && !path.isEmpty()) {
+            return path;
+        }
+        return Paths.get(System.getProperty("user.dir"), "conf", "bank", "bank.json").toString();
     }
 }
