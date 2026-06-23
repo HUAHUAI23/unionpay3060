@@ -85,4 +85,20 @@ public class EnvConfig {
         }
         return Paths.get(System.getProperty("user.dir"), "conf", "bank", "bank.json").toString();
     }
+
+    public static String getFastgptApiKey() {
+        return getEnv("FASTGPT_API_KEY");
+    }
+
+    public static String getFastgptUserId() {
+        return getEnv("FASTGPT_USER_ID", "fastgpt");
+    }
+
+    public static String getFastgptWorkspaceId() {
+        return getEnv("FASTGPT_WORKSPACE_ID", "fastgpt-service");
+    }
+
+    public static String getFastgptRegionUid() {
+        return getEnv("FASTGPT_REGION_UID", "unknown");
+    }
 }
