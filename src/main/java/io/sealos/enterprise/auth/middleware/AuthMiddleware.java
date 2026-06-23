@@ -46,13 +46,14 @@ public class AuthMiddleware {
             return;
         }
 
+        // fastgpt key 认证处理
         String apiKey = ctx.header(FASTGPT_API_KEY_HEADER);
         if (apiKey != null && !apiKey.isBlank()) {
             authenticateFastgpt(ctx, apiKey);
             return;
         }
 
-        // 认证处理
+        // sealos 认证处理
         String token = ctx.header("Authorization");
         if (token == null || token.isEmpty()) {
             throw new UnauthorizedResponse("Missing authorization token");
